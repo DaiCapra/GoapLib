@@ -172,7 +172,6 @@ public class AStar<TK, TV>
                     continue;
                 }
 
-                // Todo: Heuristics
                 adjacent.g = adjacent.parentAction.cost;
                 adjacent.h = CalculateH(adjacent, goal);
 

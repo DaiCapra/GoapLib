@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace GoapLib.States;
+namespace GoapLib.Utility;
 
 public class Hashing
 {
