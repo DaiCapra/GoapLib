@@ -57,7 +57,6 @@ namespace GoapLib.Tests.Planning
                 list.Add(result);
             }
 
-
             sw.Stop();
 
             var average = sw.Elapsed.Milliseconds / size;
@@ -65,7 +64,30 @@ namespace GoapLib.Tests.Planning
 
             list.ForEach(result => Assert.IsTrue(result.success));
         }
-        
+
+        [Test]
+        public void CanSearch()
+        {
+            _actions.Add(_buyBeans);
+            _actions.Add(_makeCoffee);
+            _actions.Add(_drinkCoffee);
+
+            var start = new State<Attributes, bool>
+            {
+                [Attributes.HasMoney] = true,
+                [Attributes.IsThirsty] = true
+            };
+
+            var end = new State<Attributes, bool>
+            {
+                [Attributes.IsThirsty] = false
+            };
+
+            var astar = new AStar<Attributes, bool>(Actions);
+            var result = astar.Run(start, end);
+            Assert.True(result.success);
+        }
+
         [Test]
         public async Task CanSearchOnMultipleThreads()
         {
@@ -78,7 +100,6 @@ namespace GoapLib.Tests.Planning
 
             var size = 10000;
 
-           
             var tasks = new List<Task<AStarResult<Attributes, bool>>>();
             for (int i = 0; i < size; i++)
             {
@@ -103,36 +124,12 @@ namespace GoapLib.Tests.Planning
             }
 
             var results = await Task.WhenAll(tasks);
-
             sw.Stop();
 
             var average = sw.Elapsed.Milliseconds / size;
             System.Console.WriteLine($"Total: {sw.Elapsed}, Average: {average} ms");
 
             results.ToList().ForEach(result => Assert.IsTrue(result.success));
-        }
-
-        [Test]
-        public void CanSearch()
-        {
-            _actions.Add(_buyBeans);
-            _actions.Add(_makeCoffee);
-            _actions.Add(_drinkCoffee);
-
-            var start = new State<Attributes, bool>
-            {
-                [Attributes.HasMoney] = true,
-                [Attributes.IsThirsty] = true
-            };
-
-            var end = new State<Attributes, bool>
-            {
-                [Attributes.IsThirsty] = false
-            };
-
-            var astar = new AStar<Attributes, bool>(Actions);
-            var result = astar.Run(start, end);
-            Assert.True(result.success);
         }
 
         [Test]

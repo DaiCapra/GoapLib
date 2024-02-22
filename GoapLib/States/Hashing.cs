@@ -31,7 +31,6 @@ public class Hashing
         var hash = BitConverter.ToString(encoded);
         Stack.Push(md5);
 
-
         return hash;
     }
 }

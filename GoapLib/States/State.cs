@@ -8,11 +8,6 @@ public class State<TK, TV> : IEquatable<State<TK, TV>>
     public readonly Dictionary<TK, TV> map;
     public string hash;
 
-    public State()
-    {
-        map = new();
-    }
-
     public TV this[TK key]
     {
         get => map[key];
@@ -23,6 +18,11 @@ public class State<TK, TV> : IEquatable<State<TK, TV>>
         }
     }
 
+    public State()
+    {
+        hash = string.Empty;
+        map = new();
+    }
 
     public void Apply(State<TK, TV> other)
     {
@@ -60,6 +60,13 @@ public class State<TK, TV> : IEquatable<State<TK, TV>>
         return state;
     }
 
+    public bool Equals(State<TK, TV> other)
+    {
+        if (ReferenceEquals(null, other)) return false;
+        if (ReferenceEquals(this, other)) return true;
+        return hash == other.hash;
+    }
+
     public override bool Equals(object obj)
     {
         if (ReferenceEquals(null, obj)) return false;
@@ -70,7 +77,7 @@ public class State<TK, TV> : IEquatable<State<TK, TV>>
 
     public override int GetHashCode()
     {
-        return (hash != null ? hash.GetHashCode() : 0);
+        return hash != null ? hash.GetHashCode() : 0;
     }
 
     public void Remove(TK key, bool updateHashCode = true)
@@ -96,12 +103,5 @@ public class State<TK, TV> : IEquatable<State<TK, TV>>
     public void UpdateHashCode()
     {
         hash = Hashing.GetHash(map);
-    }
-
-    public bool Equals(State<TK, TV> other)
-    {
-        if (ReferenceEquals(null, other)) return false;
-        if (ReferenceEquals(this, other)) return true;
-        return hash == other.hash;
     }
 }
