@@ -13,7 +13,7 @@ public class AStarNode<TK, TV> : FastPriorityQueueNode
     public AStarNode<TK, TV> parentNode;
     public State<TK, TV> state;
 
-    public int Hash => state.GetHashCode();
+    public string Hash => state.hash;
 
     public float GetF()
     {

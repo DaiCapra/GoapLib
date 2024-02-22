@@ -11,10 +11,10 @@ public class AStar<TK, TV>
     private readonly List<Action<TK, TV>> _actions;
     private readonly int _capacity;
 
-    private readonly Dictionary<int, AStarNode<TK, TV>> _closed;
-    private readonly Dictionary<int, AStarNode<TK, TV>> _open;
+    private readonly Dictionary<string, AStarNode<TK, TV>> _closed;
+    private readonly Dictionary<string, AStarNode<TK, TV>> _open;
     private readonly FastPriorityQueue<AStarNode<TK, TV>> _priorityQueue;
-    private readonly Dictionary<int, AStarNode<TK, TV>> _searchSpace;
+    private readonly Dictionary<string, AStarNode<TK, TV>> _searchSpace;
 
     public AStar(List<Action<TK, TV>> actions)
     {
@@ -105,7 +105,7 @@ public class AStar<TK, TV>
             var state = node.state.Copy();
             state.Apply(action.effects);
 
-            if (state.GetHashCode() == currentState.GetHashCode())
+            if (state.hash == currentState.hash)
             {
                 // Skip if next state is the same as current state.
                 continue;
@@ -124,7 +124,7 @@ public class AStar<TK, TV>
         Action<TK, TV> parentAction = null
     )
     {
-        if (_searchSpace.TryGetValue(state.GetHashCode(), out var node))
+        if (_searchSpace.TryGetValue(state.hash, out var node))
         {
             return node;
         }
@@ -136,7 +136,7 @@ public class AStar<TK, TV>
             parentAction = parentAction
         };
 
-        _searchSpace[state.GetHashCode()] = node;
+        _searchSpace[state.hash] = node;
         return node;
     }
 

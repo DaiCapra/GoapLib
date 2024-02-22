@@ -1,25 +1,12 @@
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace GoapLib.States;
-
-public class Hashing
-{
-    private static readonly MD5 Md5 = new MD5CryptoServiceProvider();
-
-    public static byte[] ComputeHash(byte[] bytes)
-    {
-        return Md5.ComputeHash(bytes);
-    }
-}
 
 public class State<TK, TV> : IEquatable<State<TK, TV>>
 {
     public readonly Dictionary<TK, TV> map;
-    private int _hashCode;
+    public string hash;
 
     public State()
     {
@@ -36,12 +23,6 @@ public class State<TK, TV> : IEquatable<State<TK, TV>>
         }
     }
 
-    public bool Equals(State<TK, TV> other)
-    {
-        if (ReferenceEquals(null, other)) return false;
-        if (ReferenceEquals(this, other)) return true;
-        return _hashCode == other._hashCode;
-    }
 
     public void Apply(State<TK, TV> other)
     {
@@ -75,7 +56,7 @@ public class State<TK, TV> : IEquatable<State<TK, TV>>
             state.Set(kv.Key, kv.Value, updateHashCode: false);
         }
 
-        state._hashCode = _hashCode;
+        state.hash = hash;
         return state;
     }
 
@@ -89,8 +70,7 @@ public class State<TK, TV> : IEquatable<State<TK, TV>>
 
     public override int GetHashCode()
     {
-        // ReSharper disable once NonReadonlyMemberInGetHashCode
-        return _hashCode;
+        return (hash != null ? hash.GetHashCode() : 0);
     }
 
     public void Remove(TK key, bool updateHashCode = true)
@@ -115,12 +95,13 @@ public class State<TK, TV> : IEquatable<State<TK, TV>>
 
     public void UpdateHashCode()
     {
-        var json = JsonConvert.SerializeObject(map);
+        hash = Hashing.GetHash(map);
+    }
 
-        var bytes = Encoding.UTF8.GetBytes(json);
-        var encoded = Hashing.ComputeHash(bytes);
-
-        var hash = Encoding.UTF8.GetString(encoded);
-        _hashCode = hash.GetHashCode();
+    public bool Equals(State<TK, TV> other)
+    {
+        if (ReferenceEquals(null, other)) return false;
+        if (ReferenceEquals(this, other)) return true;
+        return hash == other.hash;
     }
 }
