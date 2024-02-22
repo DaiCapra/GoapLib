@@ -1,8 +1,8 @@
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
-using Newtonsoft.Json;
 
 namespace GoapLib.States;
 
@@ -10,11 +10,6 @@ public class State<TK, TV> : IEquatable<State<TK, TV>>
 {
     public readonly Dictionary<TK, TV> map;
     private int _hashCode;
-
-    public State()
-    {
-        map = new();
-    }
 
     public TV this[TK key]
     {
@@ -26,11 +21,9 @@ public class State<TK, TV> : IEquatable<State<TK, TV>>
         }
     }
 
-    public bool Equals(State<TK, TV> other)
+    public State()
     {
-        if (ReferenceEquals(null, other)) return false;
-        if (ReferenceEquals(this, other)) return true;
-        return _hashCode == other._hashCode;
+        map = new();
     }
 
     public void Apply(State<TK, TV> other)
@@ -43,14 +36,37 @@ public class State<TK, TV> : IEquatable<State<TK, TV>>
         UpdateHashCode();
     }
 
-    public void UpdateHashCode()
+    public bool CanApply(State<TK, TV> state)
     {
-        // Todo: Implement a faster hash function
-        var json = JsonConvert.SerializeObject(map);
+        foreach (var kv in state.map)
+        {
+            if (!map.ContainsKey(kv.Key) || !map[kv.Key].Equals(kv.Value))
+            {
+                return false;
+            }
+        }
 
-        using var sha256 = SHA256.Create();
-        var encoded = sha256.ComputeHash(Encoding.UTF8.GetBytes(json));
-        _hashCode = BitConverter.ToInt32(encoded, 0) % 1000000;
+        return true;
+    }
+
+    public State<TK, TV> Copy()
+    {
+        var state = new State<TK, TV>();
+
+        foreach (var kv in map)
+        {
+            state.Set(kv.Key, kv.Value, updateHashCode: false);
+        }
+
+        state._hashCode = _hashCode;
+        return state;
+    }
+
+    public bool Equals(State<TK, TV> other)
+    {
+        if (ReferenceEquals(null, other)) return false;
+        if (ReferenceEquals(this, other)) return true;
+        return _hashCode == other._hashCode;
     }
 
     public override bool Equals(object obj)
@@ -67,17 +83,14 @@ public class State<TK, TV> : IEquatable<State<TK, TV>>
         return _hashCode;
     }
 
-    public State<TK, TV> Copy()
+    public void Remove(TK key, bool updateHashCode = true)
     {
-        var state = new State<TK, TV>();
+        map.Remove(key);
 
-        foreach (var kv in map)
+        if (updateHashCode)
         {
-            state.Set(kv.Key, kv.Value, updateHashCode: false);
+            UpdateHashCode();
         }
-
-        state._hashCode = _hashCode;
-        return state;
     }
 
     public void Set(TK key, TV value, bool updateHashCode = true)
@@ -90,26 +103,13 @@ public class State<TK, TV> : IEquatable<State<TK, TV>>
         }
     }
 
-    public void Remove(TK key, bool updateHashCode = true)
+    public void UpdateHashCode()
     {
-        map.Remove(key);
+        // Todo: Implement a faster hash function
+        var json = JsonConvert.SerializeObject(map);
 
-        if (updateHashCode)
-        {
-            UpdateHashCode();
-        }
-    }
-
-    public bool CanApply(State<TK, TV> state)
-    {
-        foreach (var kv in state.map)
-        {
-            if (!map.ContainsKey(kv.Key) || !map[kv.Key].Equals(kv.Value))
-            {
-                return false;
-            }
-        }
-
-        return true;
+        using var sha256 = SHA256.Create();
+        var encoded = sha256.ComputeHash(Encoding.UTF8.GetBytes(json));
+        _hashCode = BitConverter.ToInt32(encoded, 0) % 1000000;
     }
 }

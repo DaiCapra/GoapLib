@@ -49,6 +49,25 @@ public class AStar<TK, TV>
         return result;
     }
 
+    private float CalculateH(AStarNode<TK, TV> adjacent, State<TK, TV> goal)
+    {
+        int cost = 0;
+
+        var map = adjacent.state.map;
+        foreach (var kv in goal.map)
+        {
+            var key = kv.Key;
+            var goalValue = kv.Value;
+
+            if (!map.ContainsKey(key) || !map[key].Equals(goalValue))
+            {
+                cost++;
+            }
+        }
+
+        return cost;
+    }
+
     private void CalculatePath(AStarResult<TK, TV> result)
     {
         if (!result.success)
@@ -67,25 +86,6 @@ public class AStar<TK, TV>
 
         path.Reverse();
         result.path = path;
-    }
-
-    private float CalculateH(AStarNode<TK, TV> adjacent, State<TK, TV> goal)
-    {
-        int cost = 0;
-
-        var map = adjacent.state.map;
-        foreach (var kv in goal.map)
-        {
-            var key = kv.Key;
-            var goalValue = kv.Value;
-
-            if (!map.ContainsKey(key) || !map[key].Equals(goalValue))
-            {
-                cost++;
-            }
-        }
-
-        return cost;
     }
 
     private List<AStarNode<TK, TV>> GetAdjacent(AStarNode<TK, TV> node)

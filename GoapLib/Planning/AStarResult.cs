@@ -1,5 +1,5 @@
-using System.Collections.Generic;
 using GoapLib.Actions;
+using System.Collections.Generic;
 
 namespace GoapLib.Planning;
 

@@ -1,60 +1,68 @@
-﻿using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using GoapLib.Actions;
+﻿using GoapLib.Actions;
 using GoapLib.Planning;
 using GoapLib.States;
 using NUnit.Framework;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 
 namespace GoapLib.Tests.Planning
 {
     [TestFixture]
     public class AStarTests
     {
-        [SetUp]
-        public void Setup()
-        {
-            _actions = new List<GameAction>();
-
-            _buyBeans = new GameAction()
-                .AddName("Buy beans")
-                .AddCondition(Attributes.HasMoney, true)
-                .AddEffect(Attributes.HasBeans, true)
-                .AddEffect(Attributes.HasMoney, false)
-                .Cast<GameAction>();
-
-            _makeCoffee = new GameAction()
-                .AddName("Make coffee")
-                .AddCondition(Attributes.HasBeans, true)
-                .AddEffect(Attributes.HasCoffee, true)
-                .AddEffect(Attributes.HasBeans, false)
-                .Cast<GameAction>();
-
-            _buyCoffee = new GameAction()
-                .AddName("Buy coffee")
-                .AddCondition(Attributes.HasMoney, true)
-                .AddEffect(Attributes.HasCoffee, true)
-                .AddEffect(Attributes.HasMoney, false)
-                .AddCost(10)
-                .Cast<GameAction>();
-
-            _drinkCoffee = new GameAction()
-                .AddName("Drink coffee")
-                .AddCondition(Attributes.HasCoffee, true)
-                .AddEffect(Attributes.IsThirsty, false)
-                .AddEffect(Attributes.HasCoffee, false)
-                .Cast<GameAction>();
-        }
-
         private List<GameAction> _actions;
+
         private GameAction _buyBeans;
-        private GameAction _makeCoffee;
-        private GameAction _drinkCoffee;
+
         private GameAction _buyCoffee;
+
+        private GameAction _drinkCoffee;
+
+        private GameAction _makeCoffee;
 
         private List<Action<Attributes, bool>> Actions => _actions
             .Cast<Action<Attributes, bool>>()
             .ToList();
+
+        [Test]
+        public void CanPassStress()
+        {
+            _actions.Add(_buyBeans);
+            _actions.Add(_makeCoffee);
+            _actions.Add(_drinkCoffee);
+
+            var sw = new Stopwatch();
+            sw.Start();
+
+            var size = 10000;
+
+            var list = new List<AStarResult<Attributes, bool>>();
+            for (int i = 0; i < size; i++)
+            {
+                var start = new State<Attributes, bool>
+                {
+                    [Attributes.HasMoney] = true,
+                    [Attributes.IsThirsty] = true
+                };
+
+                var end = new State<Attributes, bool>
+                {
+                    [Attributes.IsThirsty] = false
+                };
+
+                var astar = new AStar<Attributes, bool>(Actions);
+                var result = astar.Run(start, end);
+                list.Add(result);
+            }
+
+            sw.Stop();
+
+            var average = sw.Elapsed.Milliseconds / size;
+            System.Console.WriteLine($"Total: {sw.Elapsed}, Average: {average} ms");
+
+            list.ForEach(result => Assert.IsTrue(result.success));
+        }
 
         [Test]
         public void CanSearch()
@@ -114,43 +122,39 @@ namespace GoapLib.Tests.Planning
             Assert.That(result.path.Contains(_buyCoffee));
         }
 
-        [Test]
-        public void CanPassStress()
+        [SetUp]
+        public void Setup()
         {
-            _actions.Add(_buyBeans);
-            _actions.Add(_makeCoffee);
-            _actions.Add(_drinkCoffee);
+            _actions = new List<GameAction>();
 
-            var sw = new Stopwatch();
-            sw.Start();
+            _buyBeans = new GameAction()
+                .AddName("Buy beans")
+                .AddCondition(Attributes.HasMoney, true)
+                .AddEffect(Attributes.HasBeans, true)
+                .AddEffect(Attributes.HasMoney, false)
+                .Cast<GameAction>();
 
-            var size = 10000;
+            _makeCoffee = new GameAction()
+                .AddName("Make coffee")
+                .AddCondition(Attributes.HasBeans, true)
+                .AddEffect(Attributes.HasCoffee, true)
+                .AddEffect(Attributes.HasBeans, false)
+                .Cast<GameAction>();
 
-            var list = new List<AStarResult<Attributes, bool>>();
-            for (int i = 0; i < size; i++)
-            {
-                var start = new State<Attributes, bool>
-                {
-                    [Attributes.HasMoney] = true,
-                    [Attributes.IsThirsty] = true
-                };
+            _buyCoffee = new GameAction()
+                .AddName("Buy coffee")
+                .AddCondition(Attributes.HasMoney, true)
+                .AddEffect(Attributes.HasCoffee, true)
+                .AddEffect(Attributes.HasMoney, false)
+                .AddCost(10)
+                .Cast<GameAction>();
 
-                var end = new State<Attributes, bool>
-                {
-                    [Attributes.IsThirsty] = false
-                };
-
-                var astar = new AStar<Attributes, bool>(Actions);
-                var result = astar.Run(start, end);
-                list.Add(result);
-            }
-
-            sw.Stop();
-
-            var average = sw.Elapsed.Milliseconds / size;
-            System.Console.WriteLine($"Total: {sw.Elapsed}, Average: {average} ms");
-
-            list.ForEach(result => Assert.IsTrue(result.success));
+            _drinkCoffee = new GameAction()
+                .AddName("Drink coffee")
+                .AddCondition(Attributes.HasCoffee, true)
+                .AddEffect(Attributes.IsThirsty, false)
+                .AddEffect(Attributes.HasCoffee, false)
+                .Cast<GameAction>();
         }
     }
 }

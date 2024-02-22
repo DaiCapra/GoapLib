@@ -39,13 +39,13 @@ public class Action<TK, TV>
         return this;
     }
 
-    public override string ToString()
-    {
-        return name;
-    }
-
     public T Cast<T>() where T : Action<TK, TV>
     {
         return this as T;
+    }
+
+    public override string ToString()
+    {
+        return name;
     }
 }
