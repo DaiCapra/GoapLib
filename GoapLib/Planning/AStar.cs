@@ -10,11 +10,11 @@ public class AStar<TK, TV>
 {
     private readonly List<Action<TK, TV>> _actions;
     private readonly int _capacity;
+
+    private readonly Dictionary<int, AStarNode<TK, TV>> _closed;
+    private readonly Dictionary<int, AStarNode<TK, TV>> _open;
     private readonly FastPriorityQueue<AStarNode<TK, TV>> _priorityQueue;
     private readonly Dictionary<int, AStarNode<TK, TV>> _searchSpace;
-
-    private readonly Dictionary<int, AStarNode<TK, TV>> closed;
-    private readonly Dictionary<int, AStarNode<TK, TV>> open;
 
     public AStar(List<Action<TK, TV>> actions)
     {
@@ -25,8 +25,8 @@ public class AStar<TK, TV>
 
         _priorityQueue = new(capacity);
         _searchSpace = new();
-        open = new();
-        closed = new();
+        _open = new();
+        _closed = new();
     }
 
     public AStarNode<TK, TV> GetOrMake(State<TK, TV> state, AStarNode<TK, TV> parent = null)
@@ -52,21 +52,21 @@ public class AStar<TK, TV>
 
         var start = GetOrMake(origin);
         _priorityQueue.Enqueue(start, start.GetF());
-        open.Add(start.Hash, start);
+        _open.Add(start.Hash, start);
 
         AStarNode<TK, TV> current = null;
 
         int iterations = 0;
         while (iterations < _capacity)
         {
-            if (open.Count == 0)
+            if (_open.Count == 0)
             {
                 break;
             }
 
             current = _priorityQueue.Dequeue();
-            closed.Add(current.Hash, current);
-            open.Remove(current.Hash);
+            _closed.Add(current.Hash, current);
+            _open.Remove(current.Hash);
 
             if (current.state.CanApply(goal))
             {
@@ -77,21 +77,21 @@ public class AStar<TK, TV>
             var adjacentNodes = GetAdjacent(current);
             foreach (var adjacent in adjacentNodes)
             {
-                if (closed.ContainsKey(adjacent.Hash))
+                if (_closed.ContainsKey(adjacent.Hash))
                 {
                     // Skip if adjacent node is already in closed.
                     continue;
                 }
 
                 // Todo: Heuristics
-                if (!open.ContainsKey(adjacent.Hash))
+                if (!_open.ContainsKey(adjacent.Hash))
                 {
-                    open.Add(adjacent.Hash, adjacent);
+                    _open.Add(adjacent.Hash, adjacent);
                     _priorityQueue.Enqueue(adjacent, adjacent.GetF());
                 }
                 else
                 {
-                    var nodePrevAdded = open[adjacent.Hash];
+                    var nodePrevAdded = _open[adjacent.Hash];
                     if (adjacent.g < nodePrevAdded.g)
                     {
                         nodePrevAdded.g = adjacent.g;
@@ -124,7 +124,7 @@ public class AStar<TK, TV>
 
             var state = node.state.Copy();
             state.Apply(action.effects);
-            
+
             if (state.GetHashCode() == currentState.GetHashCode())
             {
                 // Skip if next state is the same as current state.
