@@ -6,10 +6,25 @@ using System.Text;
 
 namespace GoapLib.States;
 
+public class Hashing
+{
+    private static readonly MD5 Md5 = new MD5CryptoServiceProvider();
+
+    public static byte[] ComputeHash(byte[] bytes)
+    {
+        return Md5.ComputeHash(bytes);
+    }
+}
+
 public class State<TK, TV> : IEquatable<State<TK, TV>>
 {
     public readonly Dictionary<TK, TV> map;
     private int _hashCode;
+
+    public State()
+    {
+        map = new();
+    }
 
     public TV this[TK key]
     {
@@ -21,9 +36,11 @@ public class State<TK, TV> : IEquatable<State<TK, TV>>
         }
     }
 
-    public State()
+    public bool Equals(State<TK, TV> other)
     {
-        map = new();
+        if (ReferenceEquals(null, other)) return false;
+        if (ReferenceEquals(this, other)) return true;
+        return _hashCode == other._hashCode;
     }
 
     public void Apply(State<TK, TV> other)
@@ -62,13 +79,6 @@ public class State<TK, TV> : IEquatable<State<TK, TV>>
         return state;
     }
 
-    public bool Equals(State<TK, TV> other)
-    {
-        if (ReferenceEquals(null, other)) return false;
-        if (ReferenceEquals(this, other)) return true;
-        return _hashCode == other._hashCode;
-    }
-
     public override bool Equals(object obj)
     {
         if (ReferenceEquals(null, obj)) return false;
@@ -105,11 +115,12 @@ public class State<TK, TV> : IEquatable<State<TK, TV>>
 
     public void UpdateHashCode()
     {
-        // Todo: Implement a faster hash function
         var json = JsonConvert.SerializeObject(map);
 
-        using var sha256 = SHA256.Create();
-        var encoded = sha256.ComputeHash(Encoding.UTF8.GetBytes(json));
-        _hashCode = BitConverter.ToInt32(encoded, 0) % 1000000;
+        var bytes = Encoding.UTF8.GetBytes(json);
+        var encoded = Hashing.ComputeHash(bytes);
+
+        var hash = Encoding.UTF8.GetString(encoded);
+        _hashCode = hash.GetHashCode();
     }
 }
