@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
@@ -7,12 +8,7 @@ namespace GoapLib.States;
 
 public class Hashing
 {
-    private static readonly MD5 Md5 = new MD5CryptoServiceProvider();
-    
-    private static byte[] ComputeHash(byte[] bytes)
-    {
-        return Md5.ComputeHash(bytes);
-    }
+    private static readonly ConcurrentStack<MD5> Stack = new();
 
     public static string GetHash<TK, TV>(Dictionary<TK, TV> dictionary)
     {
@@ -24,8 +20,18 @@ public class Hashing
 
         var s = sb.ToString();
         var bytes = Encoding.UTF8.GetBytes(s);
-        var encoded = ComputeHash(bytes);
 
-        return BitConverter.ToString(encoded);
+        if (!Stack.TryPop(out var md5))
+        {
+            md5 = MD5.Create();
+        }
+
+        var encoded = md5.ComputeHash(bytes);
+
+        var hash = BitConverter.ToString(encoded);
+        Stack.Push(md5);
+
+
+        return hash;
     }
 }

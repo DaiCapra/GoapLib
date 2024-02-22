@@ -5,6 +5,7 @@ using NUnit.Framework;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace GoapLib.Tests.Planning
 {
@@ -56,12 +57,59 @@ namespace GoapLib.Tests.Planning
                 list.Add(result);
             }
 
+
             sw.Stop();
 
             var average = sw.Elapsed.Milliseconds / size;
             System.Console.WriteLine($"Total: {sw.Elapsed}, Average: {average} ms");
 
             list.ForEach(result => Assert.IsTrue(result.success));
+        }
+        
+        [Test]
+        public async Task CanSearchOnMultipleThreads()
+        {
+            _actions.Add(_buyBeans);
+            _actions.Add(_makeCoffee);
+            _actions.Add(_drinkCoffee);
+
+            var sw = new Stopwatch();
+            sw.Start();
+
+            var size = 10000;
+
+           
+            var tasks = new List<Task<AStarResult<Attributes, bool>>>();
+            for (int i = 0; i < size; i++)
+            {
+                var start = new State<Attributes, bool>
+                {
+                    [Attributes.HasMoney] = true,
+                    [Attributes.IsThirsty] = true
+                };
+
+                var end = new State<Attributes, bool>
+                {
+                    [Attributes.IsThirsty] = false
+                };
+
+                var task = Task.Run(() =>
+                {
+                    var astar = new AStar<Attributes, bool>(Actions);
+                    var result = astar.Run(start, end);
+                    return result;
+                });
+                tasks.Add(task);
+            }
+
+            var results = await Task.WhenAll(tasks);
+
+            sw.Stop();
+
+            var average = sw.Elapsed.Milliseconds / size;
+            System.Console.WriteLine($"Total: {sw.Elapsed}, Average: {average} ms");
+
+            results.ToList().ForEach(result => Assert.IsTrue(result.success));
         }
 
         [Test]
