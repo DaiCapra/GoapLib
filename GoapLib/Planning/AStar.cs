@@ -1,8 +1,8 @@
-using System.Collections.Generic;
-using System.Linq;
 using GoapLib.Actions;
 using GoapLib.States;
 using Priority_Queue;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace GoapLib.Planning;
 
@@ -29,84 +29,63 @@ public class AStar<TK, TV>
         _closed = new();
     }
 
-    public AStarNode<TK, TV> GetOrMake(State<TK, TV> state, AStarNode<TK, TV> parent = null)
+    public void Clear()
     {
-        if (_searchSpace.TryGetValue(state.GetHashCode(), out var node))
-        {
-            return node;
-        }
-
-        node = new()
-        {
-            state = state,
-            parent = parent
-        };
-
-        _searchSpace[state.GetHashCode()] = node;
-        return node;
+        _priorityQueue.Clear();
+        _searchSpace.Clear();
+        _open.Clear();
+        _closed.Clear();
     }
 
-    public AStarResult Run(State<TK, TV> origin, State<TK, TV> goal)
+    public AStarResult<TK, TV> Run(State<TK, TV> origin, State<TK, TV> goal)
     {
-        var result = new AStarResult();
-
         var start = GetOrMake(origin);
         _priorityQueue.Enqueue(start, start.GetF());
         _open.Add(start.Hash, start);
 
-        AStarNode<TK, TV> current = null;
-
-        int iterations = 0;
-        while (iterations < _capacity)
-        {
-            if (_open.Count == 0)
-            {
-                break;
-            }
-
-            current = _priorityQueue.Dequeue();
-            _closed.Add(current.Hash, current);
-            _open.Remove(current.Hash);
-
-            if (current.state.CanApply(goal))
-            {
-                result.success = true;
-                break;
-            }
-
-            var adjacentNodes = GetAdjacent(current);
-            foreach (var adjacent in adjacentNodes)
-            {
-                if (_closed.ContainsKey(adjacent.Hash))
-                {
-                    // Skip if adjacent node is already in closed.
-                    continue;
-                }
-
-                // Todo: Heuristics
-                if (!_open.ContainsKey(adjacent.Hash))
-                {
-                    _open.Add(adjacent.Hash, adjacent);
-                    _priorityQueue.Enqueue(adjacent, adjacent.GetF());
-                }
-                else
-                {
-                    var nodePrevAdded = _open[adjacent.Hash];
-                    if (adjacent.g < nodePrevAdded.g)
-                    {
-                        nodePrevAdded.g = adjacent.g;
-                        nodePrevAdded.h = adjacent.h;
-                        nodePrevAdded.parent = current;
-
-                        _priorityQueue.UpdatePriority(nodePrevAdded, nodePrevAdded.GetF());
-                    }
-                }
-            }
-
-            iterations++;
-        }
+        var result = Search(goal);
+        CalculatePath(result);
 
         return result;
+    }
+
+    private void CalculatePath(AStarResult<TK, TV> result)
+    {
+        if (!result.success)
+        {
+            return;
+        }
+
+        var path = new List<Action<TK, TV>>();
+        var current = result.current;
+
+        while (current != null && current.parentAction != null)
+        {
+            path.Add(current.parentAction);
+            current = current.parentNode;
+        }
+
+        path.Reverse();
+        result.path = path;
+    }
+
+    private float CalculateH(AStarNode<TK, TV> adjacent, State<TK, TV> goal)
+    {
+        int cost = 0;
+
+        var map = adjacent.state.map;
+        foreach (var kv in goal.map)
+        {
+            var key = kv.Key;
+            var goalValue = kv.Value;
+
+            if (!map.ContainsKey(key) || !map[key].Equals(goalValue))
+            {
+                cost++;
+            }
+        }
+
+        return cost;
     }
 
     private List<AStarNode<TK, TV>> GetAdjacent(AStarNode<TK, TV> node)
@@ -131,10 +110,93 @@ public class AStar<TK, TV>
                 continue;
             }
 
-            var adjacent = GetOrMake(state, node);
+            var adjacent = GetOrMake(state, parentNode: node, parentAction: action);
             list.Add(adjacent);
         }
 
         return list;
+    }
+
+    private AStarNode<TK, TV> GetOrMake(
+        State<TK, TV> state,
+        AStarNode<TK, TV> parentNode = null,
+        Action<TK, TV> parentAction = null
+    )
+    {
+        if (_searchSpace.TryGetValue(state.GetHashCode(), out var node))
+        {
+            return node;
+        }
+
+        node = new()
+        {
+            state = state,
+            parentNode = parentNode,
+            parentAction = parentAction
+        };
+
+        _searchSpace[state.GetHashCode()] = node;
+        return node;
+    }
+
+    private AStarResult<TK, TV> Search(State<TK, TV> goal)
+    {
+        var result = new AStarResult<TK, TV>();
+
+        int iterations = 0;
+        while (iterations < _capacity)
+        {
+            if (_open.Count == 0)
+            {
+                break;
+            }
+
+            var current = _priorityQueue.Dequeue();
+            _closed.Add(current.Hash, current);
+            _open.Remove(current.Hash);
+
+            if (current.state.CanApply(goal))
+            {
+                result.current = current;
+                result.success = true;
+                break;
+            }
+
+            var adjacentNodes = GetAdjacent(current);
+            foreach (var adjacent in adjacentNodes)
+            {
+                if (_closed.ContainsKey(adjacent.Hash))
+                {
+                    // Skip if adjacent node is already in closed.
+                    continue;
+                }
+
+                // Todo: Heuristics
+                adjacent.g = adjacent.parentAction.cost;
+                adjacent.h = CalculateH(adjacent, goal);
+
+                if (!_open.ContainsKey(adjacent.Hash))
+                {
+                    _open.Add(adjacent.Hash, adjacent);
+                    _priorityQueue.Enqueue(adjacent, adjacent.GetF());
+                }
+                else
+                {
+                    var nodePrevAdded = _open[adjacent.Hash];
+                    if (adjacent.g < nodePrevAdded.g)
+                    {
+                        nodePrevAdded.g = adjacent.g;
+                        nodePrevAdded.h = adjacent.h;
+                        nodePrevAdded.parentNode = current;
+
+                        _priorityQueue.UpdatePriority(nodePrevAdded, nodePrevAdded.GetF());
+                    }
+                }
+            }
+
+            iterations++;
+        }
+
+        return result;
     }
 }
