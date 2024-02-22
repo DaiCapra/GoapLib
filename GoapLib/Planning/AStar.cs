@@ -46,6 +46,7 @@ public class AStar<TK, TV>
         var result = Search(goal);
         CalculatePath(result);
 
+        Clear();
         return result;
     }
 
