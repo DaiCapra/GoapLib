@@ -63,6 +63,53 @@ public class State<TK, TV> : IEquatable<State<TK, TV>>
 
     public override int GetHashCode()
     {
+        // ReSharper disable once NonReadonlyMemberInGetHashCode
         return _hashCode;
+    }
+
+    public State<TK, TV> Copy()
+    {
+        var state = new State<TK, TV>();
+
+        foreach (var kv in map)
+        {
+            state.Set(kv.Key, kv.Value, updateHashCode: false);
+        }
+
+        state._hashCode = _hashCode;
+        return state;
+    }
+
+    public void Set(TK key, TV value, bool updateHashCode = true)
+    {
+        map[key] = value;
+
+        if (updateHashCode)
+        {
+            UpdateHashCode();
+        }
+    }
+
+    public void Remove(TK key, bool updateHashCode = true)
+    {
+        map.Remove(key);
+
+        if (updateHashCode)
+        {
+            UpdateHashCode();
+        }
+    }
+
+    public bool CanApply(State<TK, TV> state)
+    {
+        foreach (var kv in state.map)
+        {
+            if (!map.ContainsKey(kv.Key) || !map[kv.Key].Equals(kv.Value))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
