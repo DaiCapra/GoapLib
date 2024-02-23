@@ -37,11 +37,7 @@ public class AStar<TK, TV>
 
     public AStarResult<TK, TV> Run(State<TK, TV> origin, State<TK, TV> goal)
     {
-        var start = GetOrMake(origin);
-        _priorityQueue.Enqueue(start, start.GetF());
-        _open.Add(start.Hash, start);
-
-        var result = Search(goal);
+        var result = Search(origin, goal);
         CalculatePath(result);
 
         Clear();
@@ -141,9 +137,13 @@ public class AStar<TK, TV>
         return node;
     }
 
-    private AStarResult<TK, TV> Search(State<TK, TV> goal)
+    private AStarResult<TK, TV> Search(State<TK, TV> origin, State<TK, TV> goal)
     {
         var result = new AStarResult<TK, TV>();
+
+        var start = GetOrMake(origin);
+        _priorityQueue.Enqueue(start, start.GetF());
+        _open.Add(start.Hash, start);
 
         int iterations = 0;
         while (iterations < _capacity)
@@ -198,6 +198,7 @@ public class AStar<TK, TV>
             iterations++;
         }
 
+        result.iterations = iterations;
         return result;
     }
 }
