@@ -40,5 +40,23 @@ namespace GoapLib.Tests
 
             Assert.AreEqual(state1.GetHashCode(), state2.GetHashCode());
         }
+        
+        [Test]
+        public void DoUnorderedHashesEqual()
+        {
+            var state1 = new State<Attributes, bool>
+            {
+                [Attributes.HasBeans] = true,
+                [Attributes.HasCoffee] = true
+            };
+
+            var state2 = new State<Attributes, bool>
+            {
+                [Attributes.HasCoffee] = true,
+                [Attributes.HasBeans] = true,
+            };
+
+            Assert.AreEqual(state1.GetHashCode(), state2.GetHashCode());
+        }
     }
 }

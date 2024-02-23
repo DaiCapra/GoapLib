@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -12,10 +13,12 @@ public class Hashing
 
     public static string GetHash<TK, TV>(Dictionary<TK, TV> dictionary)
     {
+        var keys = dictionary.Keys.OrderBy(t => t);
         var sb = new StringBuilder();
-        foreach (var kv in dictionary)
+        
+        foreach (var key in keys)
         {
-            sb.Append(kv.Key + ":" + kv.Value + "|");
+            sb.Append(key + ":" + dictionary[key] + "|");
         }
 
         var s = sb.ToString();

@@ -48,12 +48,12 @@
     <ItemGroup>
         <Compile Include="Planning\ActionFactory.cs" />
         <Compile Include="Planning\AStarTests.cs" />
-        <Compile Include="Planning\Attributes.cs" />
         <Compile Include="Planning\GameAction.cs" />
         <Compile Include="Planning\PlannerTests.cs" />
         <Compile Include="Planning\SerializationTests.cs" />
-        <Compile Include="Planning\StateTests.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
+        <Compile Include="States\Attributes.cs" />
+        <Compile Include="States\StateTests.cs" />
     </ItemGroup>
     <ItemGroup>
       <ProjectReference Include="..\GoapLib\GoapLib.csproj">
