@@ -1,7 +1,4 @@
-﻿using GoapLib.Actions;
-using GoapLib.Planning;
-using GoapLib.States;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;

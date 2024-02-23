@@ -1,10 +1,8 @@
-using GoapLib.Actions;
-using GoapLib.States;
-using Priority_Queue;
 using System.Collections.Generic;
 using System.Linq;
+using Priority_Queue;
 
-namespace GoapLib.Planning;
+namespace GoapLib;
 
 public class AStar<TK, TV>
 {
@@ -77,16 +75,19 @@ public class AStar<TK, TV>
         }
 
         var path = new List<Action<TK, TV>>();
-        var current = result.current;
+        var current = result.last;
 
+        float cost = 0;
         while (current != null && current.parentAction != null)
         {
+            cost += current.parentAction.cost;
             path.Add(current.parentAction);
             current = current.parentNode;
         }
 
         path.Reverse();
         result.path = path;
+        result.cost = cost;
     }
 
     private List<AStarNode<TK, TV>> GetAdjacent(AStarNode<TK, TV> node)
@@ -158,7 +159,7 @@ public class AStar<TK, TV>
 
             if (current.state.CanApply(goal))
             {
-                result.current = current;
+                result.last = current;
                 result.success = true;
                 break;
             }

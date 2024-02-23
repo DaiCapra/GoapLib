@@ -1,8 +1,6 @@
-using GoapLib.Actions;
-using GoapLib.States;
 using Priority_Queue;
 
-namespace GoapLib.Planning;
+namespace GoapLib;
 
 public class AStarNode<TK, TV> : FastPriorityQueueNode
 {

@@ -1,6 +1,4 @@
-using GoapLib.States;
-
-namespace GoapLib.Actions;
+namespace GoapLib;
 
 public class Action<TK, TV>
 {

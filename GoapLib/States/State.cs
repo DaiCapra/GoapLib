@@ -1,13 +1,20 @@
 using System;
 using System.Collections.Generic;
-using GoapLib.Utility;
 
-namespace GoapLib.States;
+// ReSharper disable NonReadonlyMemberInGetHashCode
+
+namespace GoapLib;
 
 public class State<TK, TV> : IEquatable<State<TK, TV>>
 {
     public readonly Dictionary<TK, TV> map;
     public string hash;
+
+    public State()
+    {
+        hash = string.Empty;
+        map = new();
+    }
 
     public TV this[TK key]
     {
@@ -19,10 +26,11 @@ public class State<TK, TV> : IEquatable<State<TK, TV>>
         }
     }
 
-    public State()
+    public bool Equals(State<TK, TV> other)
     {
-        hash = string.Empty;
-        map = new();
+        if (ReferenceEquals(null, other)) return false;
+        if (ReferenceEquals(this, other)) return true;
+        return hash == other.hash;
     }
 
     public void Apply(State<TK, TV> other)
@@ -59,13 +67,6 @@ public class State<TK, TV> : IEquatable<State<TK, TV>>
 
         state.hash = hash;
         return state;
-    }
-
-    public bool Equals(State<TK, TV> other)
-    {
-        if (ReferenceEquals(null, other)) return false;
-        if (ReferenceEquals(this, other)) return true;
-        return hash == other.hash;
     }
 
     public override bool Equals(object obj)

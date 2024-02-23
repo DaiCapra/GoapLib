@@ -1,11 +1,11 @@
-using GoapLib.Actions;
 using System.Collections.Generic;
 
-namespace GoapLib.Planning;
+namespace GoapLib;
 
 public class AStarResult<TK, TV>
 {
-    public AStarNode<TK, TV> current;
+    public float cost;
+    public AStarNode<TK, TV> last;
     public List<Action<TK, TV>> path;
     public bool success;
 }
