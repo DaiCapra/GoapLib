@@ -9,19 +9,23 @@ namespace GoapLib.Tests.Planning
     [TestFixture]
     public class AStarTests
     {
-        private List<GameAction> _actions;
+        [SetUp]
+        public void Setup()
+        {
+            _buyBeans = ActionFactory.BuyBeans();
+            _makeCoffee = ActionFactory.MakeCoffee();
+            _buyCoffee = ActionFactory.BuyCoffee();
+            _drinkCoffee = ActionFactory.DrinkCoffee();
 
-        private GameAction _buyBeans;
+            _actions = new();
+        }
 
-        private GameAction _buyCoffee;
+        private List<Action<Attributes, bool>> _actions;
 
-        private GameAction _drinkCoffee;
-
-        private GameAction _makeCoffee;
-
-        private List<Action<Attributes, bool>> Actions => _actions
-            .Cast<Action<Attributes, bool>>()
-            .ToList();
+        private Action<Attributes, bool> _buyBeans;
+        private Action<Attributes, bool> _makeCoffee;
+        private Action<Attributes, bool> _buyCoffee;
+        private Action<Attributes, bool> _drinkCoffee;
 
         [Test]
         public void CanPassStress()
@@ -49,7 +53,7 @@ namespace GoapLib.Tests.Planning
                     [Attributes.IsThirsty] = false
                 };
 
-                var astar = new AStar<Attributes, bool>(Actions);
+                var astar = new AStar<Attributes, bool>(_actions);
                 var result = astar.Run(start, end);
                 list.Add(result);
             }
@@ -80,7 +84,7 @@ namespace GoapLib.Tests.Planning
                 [Attributes.IsThirsty] = false
             };
 
-            var astar = new AStar<Attributes, bool>(Actions);
+            var astar = new AStar<Attributes, bool>(_actions);
             var result = astar.Run(start, end);
             Assert.True(result.success);
         }
@@ -113,7 +117,7 @@ namespace GoapLib.Tests.Planning
 
                 var task = Task.Run(() =>
                 {
-                    var astar = new AStar<Attributes, bool>(Actions);
+                    var astar = new AStar<Attributes, bool>(_actions);
                     var result = astar.Run(start, end);
                     return result;
                 });
@@ -148,7 +152,7 @@ namespace GoapLib.Tests.Planning
                 [Attributes.IsThirsty] = false
             };
 
-            var astar = new AStar<Attributes, bool>(Actions);
+            var astar = new AStar<Attributes, bool>(_actions);
             var result = astar.Run(start, end);
 
             Assert.True(result.success);
@@ -162,41 +166,6 @@ namespace GoapLib.Tests.Planning
             Assert.True(result.success);
             Assert.That(result.path.Count, Is.EqualTo(2));
             Assert.That(result.path.Contains(_buyCoffee));
-        }
-
-        [SetUp]
-        public void Setup()
-        {
-            _actions = new List<GameAction>();
-
-            _buyBeans = new GameAction()
-                .AddName("Buy beans")
-                .AddCondition(Attributes.HasMoney, true)
-                .AddEffect(Attributes.HasBeans, true)
-                .AddEffect(Attributes.HasMoney, false)
-                .Cast<GameAction>();
-
-            _makeCoffee = new GameAction()
-                .AddName("Make coffee")
-                .AddCondition(Attributes.HasBeans, true)
-                .AddEffect(Attributes.HasCoffee, true)
-                .AddEffect(Attributes.HasBeans, false)
-                .Cast<GameAction>();
-
-            _buyCoffee = new GameAction()
-                .AddName("Buy coffee")
-                .AddCondition(Attributes.HasMoney, true)
-                .AddEffect(Attributes.HasCoffee, true)
-                .AddEffect(Attributes.HasMoney, false)
-                .AddCost(10)
-                .Cast<GameAction>();
-
-            _drinkCoffee = new GameAction()
-                .AddName("Drink coffee")
-                .AddCondition(Attributes.HasCoffee, true)
-                .AddEffect(Attributes.IsThirsty, false)
-                .AddEffect(Attributes.HasCoffee, false)
-                .Cast<GameAction>();
         }
     }
 }

@@ -12,6 +12,7 @@
         <AssemblyName>GoapLib.Tests</AssemblyName>
         <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
         <FileAlignment>512</FileAlignment>
+        <LangVersion>latest</LangVersion>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
         <PlatformTarget>AnyCPU</PlatformTarget>
@@ -45,9 +46,11 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
+        <Compile Include="Planning\ActionFactory.cs" />
         <Compile Include="Planning\AStarTests.cs" />
         <Compile Include="Planning\Attributes.cs" />
         <Compile Include="Planning\GameAction.cs" />
+        <Compile Include="Planning\PlannerTests.cs" />
         <Compile Include="Planning\SerializationTests.cs" />
         <Compile Include="Planning\StateTests.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
