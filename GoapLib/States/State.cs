@@ -10,12 +10,6 @@ public class State<TK, TV> : IEquatable<State<TK, TV>>
     public readonly Dictionary<TK, TV> map;
     public string hash;
 
-    public State()
-    {
-        hash = string.Empty;
-        map = new();
-    }
-
     public TV this[TK key]
     {
         get => map[key];
@@ -26,11 +20,10 @@ public class State<TK, TV> : IEquatable<State<TK, TV>>
         }
     }
 
-    public bool Equals(State<TK, TV> other)
+    public State()
     {
-        if (ReferenceEquals(null, other)) return false;
-        if (ReferenceEquals(this, other)) return true;
-        return hash == other.hash;
+        hash = string.Empty;
+        map = new();
     }
 
     public void Apply(State<TK, TV> other)
@@ -56,6 +49,11 @@ public class State<TK, TV> : IEquatable<State<TK, TV>>
         return true;
     }
 
+    public bool ContainsKey(TK key)
+    {
+        return map.ContainsKey(key);
+    }
+
     public State<TK, TV> Copy()
     {
         var state = new State<TK, TV>();
@@ -69,12 +67,24 @@ public class State<TK, TV> : IEquatable<State<TK, TV>>
         return state;
     }
 
+    public bool Equals(State<TK, TV> other)
+    {
+        if (ReferenceEquals(null, other)) return false;
+        if (ReferenceEquals(this, other)) return true;
+        return hash == other.hash;
+    }
+
     public override bool Equals(object obj)
     {
         if (ReferenceEquals(null, obj)) return false;
         if (ReferenceEquals(this, obj)) return true;
         if (obj.GetType() != this.GetType()) return false;
         return Equals((State<TK, TV>)obj);
+    }
+
+    public TV Get(TK key)
+    {
+        return map[key];
     }
 
     public override int GetHashCode()
@@ -100,6 +110,11 @@ public class State<TK, TV> : IEquatable<State<TK, TV>>
         {
             UpdateHashCode();
         }
+    }
+
+    public bool TryGetValue(TK key, out TV value)
+    {
+        return map.TryGetValue(key, out value);
     }
 
     public void UpdateHashCode()

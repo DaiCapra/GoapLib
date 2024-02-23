@@ -1,4 +1,4 @@
-namespace GoapLib.Tests.Planning
+namespace GoapLib.Tests
 {
     public static class ActionFactory
     {
@@ -9,15 +9,6 @@ namespace GoapLib.Tests.Planning
                 .AddCondition(Attributes.HasMoney, true)
                 .AddEffect(Attributes.HasBeans, true)
                 .AddEffect(Attributes.HasMoney, false);
-        }
-
-        public static Action<Attributes, bool> MakeCoffee()
-        {
-            return new Action<Attributes, bool>()
-                .AddName("Make coffee")
-                .AddCondition(Attributes.HasBeans, true)
-                .AddEffect(Attributes.HasCoffee, true)
-                .AddEffect(Attributes.HasBeans, false);
         }
 
         public static Action<Attributes, bool> BuyCoffee()
@@ -37,6 +28,15 @@ namespace GoapLib.Tests.Planning
                 .AddCondition(Attributes.HasCoffee, true)
                 .AddEffect(Attributes.IsThirsty, false)
                 .AddEffect(Attributes.HasCoffee, false);
+        }
+
+        public static Action<Attributes, bool> MakeCoffee()
+        {
+            return new Action<Attributes, bool>()
+                .AddName("Make coffee")
+                .AddCondition(Attributes.HasBeans, true)
+                .AddEffect(Attributes.HasCoffee, true)
+                .AddEffect(Attributes.HasBeans, false);
         }
     }
 }

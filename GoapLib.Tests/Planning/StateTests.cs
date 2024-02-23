@@ -1,6 +1,6 @@
 using NUnit.Framework;
 
-namespace GoapLib.Tests.Planning
+namespace GoapLib.Tests
 {
     [TestFixture]
     public class StateTests

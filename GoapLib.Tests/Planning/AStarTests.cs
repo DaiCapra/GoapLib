@@ -4,28 +4,20 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace GoapLib.Tests.Planning
+namespace GoapLib.Tests
 {
     [TestFixture]
     public class AStarTests
     {
-        [SetUp]
-        public void Setup()
-        {
-            _buyBeans = ActionFactory.BuyBeans();
-            _makeCoffee = ActionFactory.MakeCoffee();
-            _buyCoffee = ActionFactory.BuyCoffee();
-            _drinkCoffee = ActionFactory.DrinkCoffee();
-
-            _actions = new();
-        }
-
         private List<Action<Attributes, bool>> _actions;
 
         private Action<Attributes, bool> _buyBeans;
-        private Action<Attributes, bool> _makeCoffee;
+
         private Action<Attributes, bool> _buyCoffee;
+
         private Action<Attributes, bool> _drinkCoffee;
+
+        private Action<Attributes, bool> _makeCoffee;
 
         [Test]
         public void CanPassStress()
@@ -166,6 +158,17 @@ namespace GoapLib.Tests.Planning
             Assert.True(result.success);
             Assert.That(result.path.Count, Is.EqualTo(2));
             Assert.That(result.path.Contains(_buyCoffee));
+        }
+
+        [SetUp]
+        public void Setup()
+        {
+            _buyBeans = ActionFactory.BuyBeans();
+            _makeCoffee = ActionFactory.MakeCoffee();
+            _buyCoffee = ActionFactory.BuyCoffee();
+            _drinkCoffee = ActionFactory.DrinkCoffee();
+
+            _actions = new();
         }
     }
 }

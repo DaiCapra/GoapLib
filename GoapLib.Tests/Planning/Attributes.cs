@@ -1,4 +1,4 @@
-namespace GoapLib.Tests.Planning
+namespace GoapLib.Tests
 {
     public enum Attributes
     {
